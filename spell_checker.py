@@ -34,7 +34,7 @@ def correct(word):
 
 if __name__ == '__main__':
     '''
-    USE FOR BASH: 
+    HOW TO USE IN BASH: 
     cat oneway_customer_service_lines/input.txt | python spell_checker.py > spell_checked_input.txt
     '''
 
