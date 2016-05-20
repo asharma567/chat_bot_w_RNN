@@ -1,6 +1,9 @@
 import json
 import nltk.data
 import spell_checker
+from collections import Counter
+import cPickle
+from helpers import *
 
 class Suggestion_Generator(object):
     '''
@@ -70,7 +73,7 @@ class Suggestion_Generator(object):
 
         return all_customer_service_lines
 
-    def find_suggestions(key_stroke_sequence_str, top_x_lines=5):
+    def find_suggestions(self, key_stroke_sequence_str, top_x_lines=5):
         '''
         I: key stroke sequence e.g 'what th' (string), max number of suggestions (int) 
         O: suggestions that attempt to accurately complete the key stroke sequence (list of strings)
@@ -82,7 +85,7 @@ class Suggestion_Generator(object):
         if number_of_words <= 2:
 
             #pull up the most frequently occuring line
-            most_frequent_lines = retrieve_suggestions(look_this_up, key_stroke_lookup_table, top_x_lines)
+            most_frequent_lines = retrieve_suggestions(look_this_up, self.key_stroke_lookup_table, top_x_lines)
 
         else:   
 
@@ -90,7 +93,7 @@ class Suggestion_Generator(object):
             #perhaps we could have something similar in our lookup table
             len_of_key_strokes = find_num_chars_in_n_gram(look_this_up, 3)
             truncated_key_strokes = look_this_up[:len_of_key_strokes - 1]
-            most_frequent_lines = retrieve_suggestions(truncated_key_strokes, key_stroke_lookup_table, top_x_lines)
+            most_frequent_lines = retrieve_suggestions(truncated_key_strokes, self.key_stroke_lookup_table, top_x_lines)
 
         return most_frequent_lines
 
@@ -135,3 +138,14 @@ class Suggestion_Generator(object):
  
         
         return corpus_formatted_expanded_correct
+
+    def load_from_pickle(self, filename='key_stroke_lookup_table.pkl'):
+        print 'loading: ', filename, '...',
+        self.key_stroke_lookup_table = cPickle.load(open(filename,'rb'))
+        print 'loaded.'
+
+if __name__ == '__main__':
+
+    model = Suggestion_Generator()
+    model.load_from_pickle()
+    print model.find_suggestions('what')
