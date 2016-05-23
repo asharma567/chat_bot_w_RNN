@@ -18,16 +18,22 @@ class Suggestion_Generator(object):
     train
     predict
     read_in_corpus
-        I: file name
-        O: list
+    create_frequency_dict
+    read_in_corpus
+    find_suggestions
+    preprocess
+    load_from_pickle
     print_corpus
-        I: 
-        O: print to text file or screen
     '''
     
     corpus = []
     
     def train(self, target_corpus_filename, filename_for_storage='n_gram_frequencies_dict.pkl'):
+
+        '''
+        I: json file with chats e.g. 'sample_conversations.json'
+        O: None
+        '''
         
         #read
         self.corpus = self.read_in_corpus(target_corpus_filename)
@@ -35,9 +41,23 @@ class Suggestion_Generator(object):
         #preprocess
         self.corpus = self.preprocess(self.corpus)
         
-        #make counter dict
+        #*FIX
+        #make counter dict 
         self.key_stroke_lookup_table = self.create_frequency_dict()
     
+    def print_corpus(corpus, dump_to_txt=False, counter_table=False):
+        if counter_table:
+            sorted_line_counts = sorted(Counter(corpus).items(), key=lambda x:x[1], reverse=True)
+            output = '\n'.join(str(tuple_[1]) + ' | ' + tuple_[0] for tuple_ in sorted_line_counts)
+        else:
+            output = '\n'.join(corpus)
+        if dump_to_txt:
+            
+            with open('corpus.txt','wb') as f:
+                f.write(output)
+        else:
+            print '\n'.join(output)
+
     def create_frequency_dict(self):
         key_stroke_lookup_table = {}
 
@@ -47,7 +67,12 @@ class Suggestion_Generator(object):
         for customer_service_line_key in corpus_ctr_dict.keys():
 
             number_of_chars_in_ngram = find_num_chars_in_n_gram(customer_service_line_key, 3)
-            key_stroke_lookup_table = create_key_stroke_to_cust_line_table(customer_service_line_key, number_of_chars_in_ngram, corpus_ctr_dict, key_stroke_lookup_table)
+            key_stroke_lookup_table = create_key_stroke_to_cust_line_table(
+                                            customer_service_line_key,
+                                            number_of_chars_in_ngram,
+                                            corpus_ctr_dict,
+                                            key_stroke_lookup_table
+                                            )
 
         #saving lookup table
         cPickle.dump(key_stroke_lookup_table, open('key_stroke_lookup_table.pkl','wb'))
@@ -66,6 +91,7 @@ class Suggestion_Generator(object):
         all_customer_service_lines = []
 
         for issue_dialogue in Issues_json:
+            
             customer_service_lines = [message['Text'] for message in issue_dialogue['Messages'] \
              if not message['IsFromCustomer']]
 
@@ -121,7 +147,7 @@ class Suggestion_Generator(object):
         * iterate through with a string fuzzy matching algo to dedupe typos
         * unit tests
         '''
-        
+        ``
         sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
         
                                     #lowercase and tokenize by sentence
@@ -148,4 +174,5 @@ if __name__ == '__main__':
 
     model = Suggestion_Generator()
     model.load_from_pickle()
+    model.print_corpus(True)
     print model.find_suggestions('what')

@@ -67,11 +67,37 @@ def retrieve_suggestions(key_strokes, look_up_table, top_x_lines):
         sub_dict_of_suggestions = look_up_table[key_strokes]
 
         #grabs the top X number of lines sorted by count (most popular)
-        suggestions = sorted(sub_dict_of_suggestions.items(), key=lambda x:x[1])[::-1][:top_x_lines]
+        suggestions = sorted(sub_dict_of_suggestions.items(), key=lambda x:x[1], reverse=True)[:top_x_lines]
 
         return [tuple_[0] for tuple_ in suggestions]
     except KeyError:
         return None
+
+def add_question_mark_or_period_to_sentence(line):
+    if '?' in line: return line
+    
+    begining_words_of_questions = {
+        'what',
+        'when',
+        'will',
+        'why',       
+        'is',
+        'have',
+        'did',
+        'will',
+        'can',
+        'do',
+        'how',
+        'could'
+    }
+
+    starting_word = line.split(' ', 1)[0]
+    if starting_word in begining_words_of_questions:
+        return line + '?'
+    else:
+        if line[-1] != '.': return line + '.'
+    return line
+
 
 def abreviation_expander(target_str):
     
