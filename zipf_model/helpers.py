@@ -49,7 +49,7 @@ def find_num_chars_in_n_gram(target_str, number_of_grams):
     
     return len(' '.join(target_str.split(' ')[:number_of_grams])) 
 
-def format_suggestions_properly(list_of):
+def format_suggestions_properly(list_of_strs):
     '''
     I: list of string
     O: properly formatted list of strings
@@ -59,30 +59,15 @@ def format_suggestions_properly(list_of):
     * grammar corrections for punctuations
     '''
     output = []
-    for str_ in list_of:
+    for str_ in list_of_strs:
         str_ = str_.capitalize()
         str_ = str_.replace(' i ', ' I ')
-        
+
+            
         #need to think about how to add grammar
         output.append(str_)
     return output
 
-def format_string_properly(target_str):
-    '''
-    I: list of string
-    O: properly formatted list of strings
-    
-    to dos
-    ------
-    * grammar corrections for punctuations
-    '''
-    
-
-    target_str = target_str.capitalize()
-    target_str = target_str.replace(' i ', ' I ')
-    
-    #need to think about how to add grammar
-    return target_str
 
 
 def retrieve_suggestions(key_strokes, look_up_table, top_x_lines):
@@ -160,3 +145,11 @@ def multiple_replace(text, adict=ABREVIATIONS_DICT):
     def one_xlat(match):
         return adict[match.group(0)]
     return rx.sub(one_xlat, text)
+
+
+def custome_refine(target_str):
+    words_to_replace = {
+    'welcomed': 'welcome'
+    }
+
+    return multiple_replace(target_str, words_to_replace)

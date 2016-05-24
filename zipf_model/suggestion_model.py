@@ -31,7 +31,8 @@ class Suggestion_Generator(object):
     * unit tests
         - enumerate possible inputs that will break find_suggestions
         - try to break the rest of the functions
-    
+    * dedupe corpus of customer service rep lines
+
     PREPROCESS
     * fix grammar
     * remove names
@@ -40,8 +41,11 @@ class Suggestion_Generator(object):
     * multithread the spellchecker
     * iterate through with a string fuzzy matching algo to dedupe typos
 
+
     FIND_SUGGESTIONS
     * threshold the number suggestions by the frequency of suggested term
+    * decrease the time complexity of this function
+
     '''
     
     def train(self, target_corpus_filename, filename_for_storage='n_gram_frequencies_dict.pkl'):
@@ -69,8 +73,6 @@ class Suggestion_Generator(object):
         I: corpus
         O: None
         '''
-        print type(corpus)
-        print corpus[:5]
         if counter_table:
             sorted_line_counts = sorted(Counter(corpus).items(), key=lambda x:x[1], reverse=True)
             output = '\n'.join(str(tuple_[1]) + ' | ' + tuple_[0] for tuple_ in sorted_line_counts)
@@ -154,9 +156,11 @@ class Suggestion_Generator(object):
             #perhaps we could have something similar in our lookup table
             len_of_key_strokes = find_num_chars_in_n_gram(look_this_up, 3)
             truncated_key_strokes = look_this_up[:len_of_key_strokes - 1]
+            
             most_frequent_lines = retrieve_suggestions(truncated_key_strokes, self.key_stroke_lookup_table, top_x_lines)
 
-        return most_frequent_lines
+        return format_suggestions_properly(most_frequent_lines)
+        # return most_frequent_lines
 
     
     def preprocess(self, corpus):
@@ -179,17 +183,21 @@ class Suggestion_Generator(object):
                             for tokenized_line in sent_detector.tokenize(line.strip().lower())]
 
         
+        #consider re-designing to a helper function that does multiple manipulations to a string
+
         #expanding the abreviations
         corpus_formatted_expanded = [multiple_replace(line) for line in corpus_formatted]
 
-        #spell check
-        #note this function takes quite a bit of time
+        #spell check *note this function takes quite a bit of time
         corpus_formatted_expanded_correct = [' '.join([spell_checker.correct(word) for word in line.strip().split()]) 
                                              for line in corpus_formatted_expanded]
         
-        
-        return corpus_formatted_expanded_correct
+        #*FIX HACK
+        #further refinement 
+        corpus_formatted_expanded_correct = [add_question_mark_or_period_to_sentence(line) for line in corpus_formatted_expanded_correct]
+        return [custome_refine(line) for line in corpus_formatted_expanded_correct]
 
+        
     def dump_to_pickle(self):
         '''
         pythonically serializes lookup table
@@ -211,7 +219,9 @@ if __name__ == '__main__':
 
     #stub code just to test out the class
     model = Suggestion_Generator()
-    model.train('sample_conversations.json')
-    model.dump_to_pickle()
-    model.print_corpus(model.preprocessed_corpus, True, True)
+    # model.train('sample_conversations.json')
+    # model.dump_to_pickle()
+    # model.print_corpus(model.preprocessed_corpus, True, True)
+    
+    model.load_from_pickle()
     print model.find_suggestions('what')
