@@ -48,6 +48,10 @@ class Suggestion_Generator(object):
     * use a trie structure
     '''
     
+    def __init__(self):
+        pass
+
+
     def train(self, target_corpus_filename, filename_for_storage='n_gram_frequencies_dict.pkl'):
         '''
         This builds the lookup table from raw text in the JSON file.
@@ -63,7 +67,8 @@ class Suggestion_Generator(object):
         self.preprocessed_corpus = self.preprocess(self.raw_corpus)
         
         #make counter dict and prefix lookup
-        self.key_stroke_lookup_table, self.line_frequency_table = create_TRIE(self.preprocessed_corpus)
+        self.data_store = Lookup_Data_Structures(corpus=self.preprocessed_corpus)
+
     
     def print_corpus(self, corpus, dump_to_txt=False, counter_table=False):
         '''
@@ -73,6 +78,7 @@ class Suggestion_Generator(object):
         I: corpus
         O: None
         '''
+        
         if counter_table:
             sorted_line_counts = sorted(Counter(corpus).items(), key=lambda x:x[1], reverse=True)
             output = '\n'.join(str(tuple_[1]) + ' | ' + tuple_[0] for tuple_ in sorted_line_counts)
@@ -147,7 +153,7 @@ class Suggestion_Generator(object):
         *should this belong in the Lookup_Sata_Structures class?
         '''
         
-        zipfian_distributed_suggestions = data_store.lookup(key_strokes)
+        zipfian_distributed_suggestions = self.data_store.lookup(key_strokes)
         suggestions = sorted(zipfian_distributed_suggestions, key=lambda x:x[1], reverse=True)[:top_x_lines]
         return [tuple_[0] for tuple_ in suggestions]
         

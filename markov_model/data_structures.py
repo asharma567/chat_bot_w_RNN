@@ -27,6 +27,9 @@ class Lookup_Data_Structures(object):
     def __size__: 
         return sys.getsizeof(lookup_table)
 
+    def sort_by_most_frequent(self):
+        return sorted(self.token_frequency_table.items(), key=lambda x:x[1], reverse=True)
+    
     def lookup(self, key_strokes):
         if self.__type__ == 'dict':
             matches = self.lookup_table[key_strokes].items()
