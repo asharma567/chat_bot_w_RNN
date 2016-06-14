@@ -1,6 +1,7 @@
 from collections import Counter 
 import marisa_trie
 import dawg
+import sys
 
 class Lookup_Data_Structures(object):
     token_frequency_table = {}
@@ -8,7 +9,7 @@ class Lookup_Data_Structures(object):
     def __init__(self, corpus, create_this_struct_type='MARISA'):
         
         self.token_frequency_table = Counter(corpus)
-        self.structure = create_this_struct_type
+        self.structure_name = create_this_struct_type
         
         #try to think of a better structure than this
         if create_this_struct_type == 'MARISA': 
@@ -21,10 +22,10 @@ class Lookup_Data_Structures(object):
             raise KeyError
 
     def __type__: 
-        return self.structure
+        return self.structure_name
     
     def __size__: 
-        pass
+        return sys.getsizeof(lookup_table)
 
     def lookup(self, key_strokes):
         if self.__type__ == 'dict':
@@ -93,6 +94,8 @@ class Lookup_Data_Structures(object):
     def dump_to_pickle(self):
         '''
         pythonically serializes lookup table
+
+        consider using internal write methods
         '''
         
         cPickle.dump(self.lookup_table, open('lookup_table.pkl','wb'))
@@ -103,6 +106,7 @@ class Lookup_Data_Structures(object):
     def load_from_pickle(self, filename_prefix_lookup='lookup_table.pkl', filename_line='token_frequency_table.pkl'):
         '''
         loads pickled frequency table
+        consider using internal write methods
         '''
 
         print 'loading: ', filename_prefix_lookup, '...',
