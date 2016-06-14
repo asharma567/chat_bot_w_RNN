@@ -20,12 +20,13 @@ class Lookup_Data_Structures(object):
             self.lookup_table = create_DAWG(corpus)
         else:
             raise KeyError
+        pass
 
-    def __type__: 
+    def __type__(self): 
         return self.structure_name
     
-    def __size__: 
-        return sys.getsizeof(lookup_table)
+    def __size__(self): 
+        return sys.getsizeof(self.lookup_table)
 
     def sort_by_most_frequent(self):
         return sorted(self.token_frequency_table.items(), key=lambda x:x[1], reverse=True)

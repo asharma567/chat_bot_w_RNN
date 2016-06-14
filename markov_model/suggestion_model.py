@@ -1,6 +1,5 @@
 import json
-import nltk.data
-import spell_checker
+from data_structures import Lookup_Data_Structures
 # do this line by line
 from helpers import *
 
@@ -17,7 +16,7 @@ class Suggestion_Generator(object):
     train
     read_in_corpus
     create_frequency_dict
-    find_suggestions
+    find_suggestions_given_input
     preprocess
     load_from_pickle
     dump_to_pickle
@@ -27,7 +26,7 @@ class Suggestion_Generator(object):
     to dos:
     -------
     * unit tests
-        - enumerate possible inputs that will break find_suggestions
+        - enumerate possible inputs that will break find_suggestions_given_input
         - try to break the rest of the functions
     * dedupe corpus of customer service rep lines
 
@@ -40,7 +39,7 @@ class Suggestion_Generator(object):
     * iterate through with a string fuzzy matching algo to dedupe typos
 
 
-    FIND_SUGGESTIONS
+    FIND_SUGGESTIONS_given_input
     * threshold the number suggestions by the frequency of suggested term
     * decrease the time complexity of this function
 
@@ -119,7 +118,7 @@ class Suggestion_Generator(object):
 
         return all_customer_service_lines
 
-    def find_suggestions(self, key_stroke_sequence_str, top_x_lines=5):
+    def find_suggestions_given_input(self, key_stroke_sequence_str, top_x_lines=5):
         '''
         I: key stroke sequence e.g 'what th' (string), max number of suggestions (int) 
         O: suggestions that attempt to accurately complete the key stroke sequence (list of strings)
@@ -170,25 +169,14 @@ class Suggestion_Generator(object):
         
         I: list of text strings
         O: preprocessed list of text strings
+
+        Should this be it's own class?
         '''
         
-        sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
+        #tokenize by sentence
+        corpus_formatted = tokenize_by_sentence(corpus)
         
-        #lowercase and tokenize by sentence
-        corpus_formatted = [tokenized_line for line in corpus \
-                            for tokenized_line in sent_detector.tokenize(line.strip().lower())]
-
-        #expanding the abreviations
-        corpus_formatted_expanded = [multiple_replace(line) for line in corpus_formatted]
-        
-        #spell check *note this function takes quite a bit of time
-        corpus_formatted_expanded_correct = [' '.join([spell_checker.correct(word) for word in line.strip().split()]) 
-                                             for line in corpus_formatted_expanded]
-        
-        #*FIX HACK
-        #further refinement 
-        corpus_formatted_expanded_correct = [add_question_mark_or_period_to_sentence(line) for line in corpus_formatted_expanded_correct]
-        return [custome_refine(line) for line in corpus_formatted_expanded_correct]
+        return multithread_map(token_level_process, corpus_formatted, num_workers=20)
 
         
 
@@ -202,4 +190,4 @@ if __name__ == '__main__':
     
     #this takes a substantial amount of clocktime
     model.load_from_pickle()
-    print model.find_suggestions(u'what')
+    print model.find_suggestions_given_input(u'what')

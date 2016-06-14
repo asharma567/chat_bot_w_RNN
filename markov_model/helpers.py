@@ -2,6 +2,8 @@ import re
 from concurrent.futures import ThreadPoolExecutor
 import marisa_trie
 from collections import Counter
+import nltk.data
+import spell_checker
 
 
 def create_key_stroke_to_cust_line_table(customer_service_line_key, 
@@ -43,6 +45,11 @@ def create_key_stroke_to_cust_line_table(customer_service_line_key,
 
 def sort_by_most_frequent(ctr_dict):
     return sorted(ctr_dict.items(), key=lambda x:x[1], reverse=True)
+
+def tokenize_by_sentence(corpus):
+    sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
+    return [tokenized_line for line in corpus \
+                for tokenized_line in sent_detector.tokenize(line.strip())]
 
 
 def find_num_chars_in_n_gram(target_str, number_of_grams):
@@ -191,3 +198,23 @@ def custome_refine(target_str):
     }
 
     return multiple_replace(target_str, words_to_replace)
+
+def token_level_process(line):
+    
+    #expanding the abreviations
+    line = multiple_replace(line)
+    
+    #spell check *note this function takes quite a bit of time
+    line = correct_spelling(line)
+    
+    #further refinement 
+    line = add_question_mark_or_period_to_sentence(line)
+    
+    line = custome_refine(line)
+    
+    return line
+        
+
+    
+def correct_spelling(line):
+    return ' '.join([spell_checker.correct(word) for word in line.strip().split()])
