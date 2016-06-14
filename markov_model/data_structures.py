@@ -3,24 +3,36 @@ import marisa_trie
 import dawg
 
 class Lookup_Data_Structures(object):
-    line_frequency_table = {}
+    token_frequency_table = {}
     
-    def __init__(self, corpus, struct_type='MARISA'):
+    def __init__(self, corpus, create_this_struct_type='MARISA'):
         
-        self.line_frequency_table = Counter(corpus)
+        self.token_frequency_table = Counter(corpus)
+        self.structure = create_this_struct_type
         
         #try to think of a better structure than this
-        if struct_type == 'MARISA': 
+        if create_this_struct_type == 'MARISA': 
             self.lookup_table = create_TRIE(corpus)
-        elif struct_type == 'dict': 
+        elif create_this_struct_type == 'dict': 
             self.lookup_table = create_frequency_dict(corpus)
-        elif struct_type == 'DAWG': 
+        elif create_this_struct_type == 'DAWG': 
             self.lookup_table = create_DAWG(corpus)
         else:
             raise KeyError
 
-    def __type__: pass
-    def __size__: pass
+    def __type__: 
+        return self.structure
+    
+    def __size__: 
+        pass
+
+    def lookup(self, key_strokes):
+        if self.__type__ == 'dict':
+            matches = self.lookup_table[key_strokes].items()
+        else:
+            autocompleted_matches = self.lookup_table.keys(key_strokes)
+            matches = [(suggestion, self.token_frequency_table[suggestion]) for suggestion in autocompleted_matches]
+        return matches
 
     def create_TRIE(self, corpus):
         '''
@@ -36,7 +48,7 @@ class Lookup_Data_Structures(object):
         '''
         return dawg.CompletionDAWG(corpus)
 
-    def create_line_frequency_table(self, corpus):
+    def create_token_frequency_table(self, corpus):
         return Counter(corpus)
 
     def create_frequency_dict(self, corpus):
@@ -56,7 +68,7 @@ class Lookup_Data_Structures(object):
         
         key_stroke_lookup_table = {}
 
-        for customer_service_line_key in self.line_frequency_table.keys():
+        for customer_service_line_key in self.token_frequency_table.keys():
 
             number_of_chars_in_ngram = find_num_chars_in_n_gram(customer_service_line_key, 3)
             
@@ -65,7 +77,7 @@ class Lookup_Data_Structures(object):
 
             for index in range(1, number_of_chars_in_ngram + 1):
                 key_stroke_gram = customer_service_line_key[:index]
-                count_of_this_particular_line = self.line_frequency_table[customer_service_line_key]
+                count_of_this_particular_line = self.token_frequency_table[customer_service_line_key]
                 
                 if key_stroke_gram not in key_stroke_lookup_table:
                     
@@ -83,20 +95,20 @@ class Lookup_Data_Structures(object):
         pythonically serializes lookup table
         '''
         
-        cPickle.dump(self.key_stroke_lookup_table, open('key_stroke_lookup_table.pkl','wb'))
-        cPickle.dump(self.line_frequency_table, open('line_frequency_table.pkl','wb'))
+        cPickle.dump(self.lookup_table, open('lookup_table.pkl','wb'))
+        cPickle.dump(self.token_frequency_table, open('token_frequency_table.pkl','wb'))
         
         return None
     
-    def load_from_pickle(self, filename_prefix_lookup='key_stroke_lookup_table.pkl', filename_line='line_frequency_table.pkl'):
+    def load_from_pickle(self, filename_prefix_lookup='lookup_table.pkl', filename_line='token_frequency_table.pkl'):
         '''
         loads pickled frequency table
         '''
 
         print 'loading: ', filename_prefix_lookup, '...',
-        self.key_stroke_lookup_table = cPickle.load(open(filename_prefix_lookup,'rb'))
+        self.lookup_table = cPickle.load(open(filename_prefix_lookup,'rb'))
         print 'loading: ', filename_line, '...',
-        self.line_frequency_table = cPickle.load(open(filename_line,'rb'))
+        self.token_frequency_table = cPickle.load(open(filename_line,'rb'))
         print 'loaded.'
         return None
 

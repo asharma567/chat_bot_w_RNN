@@ -89,28 +89,6 @@ class Suggestion_Generator(object):
             print '\n'.join(output)
         return None
 
-    def create_frequency_dict(self, corpus):
-        '''
-        I: corpus of documents (text)
-        O: frequency table (dictionary where keys are documents and values are counts)
-        '''
-        
-        key_stroke_lookup_table = {}
-
-        #change: line_frequency_table
-        corpus_ctr_dict = Counter(corpus)
-
-        for customer_service_line_key in corpus_ctr_dict.keys():
-
-            number_of_chars_in_ngram = find_num_chars_in_n_gram(customer_service_line_key, 3)
-            key_stroke_lookup_table = create_key_stroke_to_cust_line_table(
-                                            customer_service_line_key,
-                                            number_of_chars_in_ngram,
-                                            corpus_ctr_dict,
-                                            key_stroke_lookup_table
-                                            )
-
-        return key_stroke_lookup_table
 
 
 
@@ -175,6 +153,7 @@ class Suggestion_Generator(object):
             freq_suggestions = [(suggestion, self.line_frequency_table[suggestion]) for suggestion in autocompleted_suggestions]
             suggestions = sorted(freq_suggestions, key=lambda x:x[1], reverse=True)[:top_x_lines]
             return [tuple_[0] for tuple_ in suggestions]
+        
         except TypeError:
             try:
                 sub_dict_of_suggestions = self.key_stroke_lookup_table[key_strokes]
