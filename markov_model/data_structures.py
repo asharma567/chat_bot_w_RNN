@@ -78,4 +78,27 @@ class Lookup_Data_Structures(object):
 
         return key_stroke_lookup_table
 
+    def dump_to_pickle(self):
+        '''
+        pythonically serializes lookup table
+        '''
+        
+        cPickle.dump(self.key_stroke_lookup_table, open('key_stroke_lookup_table.pkl','wb'))
+        cPickle.dump(self.line_frequency_table, open('line_frequency_table.pkl','wb'))
+        
+        return None
+    
+    def load_from_pickle(self, filename_prefix_lookup='key_stroke_lookup_table.pkl', filename_line='line_frequency_table.pkl'):
+        '''
+        loads pickled frequency table
+        '''
+
+        print 'loading: ', filename_prefix_lookup, '...',
+        self.key_stroke_lookup_table = cPickle.load(open(filename_prefix_lookup,'rb'))
+        print 'loading: ', filename_line, '...',
+        self.line_frequency_table = cPickle.load(open(filename_line,'rb'))
+        print 'loaded.'
+        return None
+
+
     
