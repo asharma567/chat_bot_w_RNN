@@ -9,12 +9,12 @@ USAGE in Bash shell:
 '''
 
 app = Flask(__name__)
+model = Suggestion_Generator()
+model.load_from_pickle()
 
 @app.route('/find_suggestions/<path:search_term>', methods=['GET'])
 def get_tasks(search_term):
     input_term = search_term.replace('+',' ')
-    model = Suggestion_Generator()
-    model.load_from_pickle()
     return jsonify({'suggestions': model.find_suggestions(input_term)})
 
 if __name__ == '__main__':

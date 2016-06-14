@@ -1,5 +1,7 @@
 import re
 from concurrent.futures import ThreadPoolExecutor
+import marisa_trie
+from collections import Counter
 
 
 def create_key_stroke_to_cust_line_table(customer_service_line_key, 
@@ -38,6 +40,7 @@ def create_key_stroke_to_cust_line_table(customer_service_line_key,
     
     return lookup_table
 
+
 def find_num_chars_in_n_gram(target_str, number_of_grams):
     '''
     calculates the number of characters of a 
@@ -59,27 +62,55 @@ def format_suggestions_properly(list_of_strs):
     * grammar corrections for punctuations
     '''
     output = []
+    
     for str_ in list_of_strs:
-        str_ = str_.capitalize()
-        str_ = str_.replace(' i ', ' I ')
+        str_ = str_.capitalize().replace(' i ', ' I ')
 
             
         #need to think about how to add grammar
         output.append(str_)
     return output
 
+def create_TRIE(corpus):
+    '''
+    I: corpus of documents (text)
+    O: TRIE structure made for prefix lookup, counter dictionary
+    '''
+        
+    return marisa_trie.Trie(corpus), Counter(corpus)
 
 
 def retrieve_suggestions(key_strokes, look_up_table, top_x_lines):
+    '''
+    This adds an O(nlogn) time complexity to our prediction method. 
+    we could avoid this by just pickling the sorted dict before hand.
+    '''
     try:
-        sub_dict_of_suggestions = look_up_table[key_strokes]
-
-        #grabs the top X number of lines sorted by count (most popular)
-        suggestions = sorted(sub_dict_of_suggestions.items(), key=lambda x:x[1], reverse=True)[:top_x_lines]
-
+        autocompleted_suggestions = prefix_lookup.keys(key_strokes)
+        freq_suggestions = [(suggestion, frequency_table[suggestion]) for suggestion in autocompleted_suggestions]
+        suggestions = sorted(freq_suggestions, key=lambda x:x[1], reverse=True)[:top_x_lines]
         return [tuple_[0] for tuple_ in suggestions]
-    except KeyError:
-        return None
+    except TypeError:
+        try:
+            sub_dict_of_suggestions = look_up_table[key_strokes]
+
+            #grabs the top X number of lines sorted by count (most popular)
+            suggestions = sorted(sub_dict_of_suggestions.items(), key=lambda x:x[1], reverse=True)[:top_x_lines]
+
+            return [tuple_[0] for tuple_ in suggestions]
+        except KeyError:
+            return None
+
+def retrieve_suggestions_TRIE(key_strokes, prefix_lookup, frequency_table, top_x_lines):
+    '''
+    This adds an O(nlogn) time complexity to our prediction method. 
+    we could avoid this by just pickling the sorted dict before hand.
+    '''
+    autocompleted_suggestions = prefix_lookup.keys(key_strokes)
+    freq_suggestions = [(suggestion, frequency_table[suggestion]) for suggestion in autocompleted_suggestions]
+    suggestions = sorted(freq_suggestions, key=lambda x:x[1], reverse=True)[:top_x_lines]
+    return [tuple_[0] for tuple_ in suggestions]
+
 
 def add_question_mark_or_period_to_sentence(target_str):
     '''
@@ -148,6 +179,9 @@ def multiple_replace(text, adict=ABREVIATIONS_DICT):
 
 
 def custome_refine(target_str):
+    '''
+    Just a temporary hack of function
+    '''
     words_to_replace = {
     'welcomed': 'welcome'
     }

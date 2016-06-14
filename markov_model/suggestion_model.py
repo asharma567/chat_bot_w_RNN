@@ -3,6 +3,8 @@ import nltk.data
 import spell_checker
 from collections import Counter
 import cPickle
+
+# do this line by line
 from helpers import *
 
 class Suggestion_Generator(object):
@@ -16,7 +18,6 @@ class Suggestion_Generator(object):
     Methods
     --------
     train
-    predict
     read_in_corpus
     create_frequency_dict
     find_suggestions
@@ -46,6 +47,8 @@ class Suggestion_Generator(object):
     * threshold the number suggestions by the frequency of suggested term
     * decrease the time complexity of this function
 
+    CREATE_FREQUENCY_DICT
+    * use a trie structure
     '''
     
     def train(self, target_corpus_filename, filename_for_storage='n_gram_frequencies_dict.pkl'):
@@ -62,8 +65,8 @@ class Suggestion_Generator(object):
         #preprocess
         self.preprocessed_corpus = self.preprocess(self.raw_corpus)
         
-        #make counter dict 
-        self.key_stroke_lookup_table = self.create_frequency_dict(self.preprocessed_corpus)
+        #make counter dict and prefix lookup
+        self.key_stroke_lookup_table, self.line_frequency_table = create_TRIE(self.preprocessed_corpus)
     
     def print_corpus(self, corpus, dump_to_txt=False, counter_table=False):
         '''
@@ -110,7 +113,7 @@ class Suggestion_Generator(object):
         return key_stroke_lookup_table
 
 
-    
+
     def read_in_corpus(self, target_corpus_filename):
         '''
         reads a json file of chats and strips on the customer service lines 
@@ -145,10 +148,11 @@ class Suggestion_Generator(object):
         look_this_up = key_stroke_sequence_str.lower()
         number_of_words = len(key_stroke_sequence_str.split())
 
-        if number_of_words <= 2:
+        
+        if number_of_words < 2:
 
             #pull up the most frequently occuring line
-            most_frequent_lines = retrieve_suggestions(look_this_up, self.key_stroke_lookup_table, top_x_lines)
+            most_frequent_lines = self.retrieve_suggestions(look_this_up, top_x_lines)
 
         else:   
 
@@ -157,10 +161,30 @@ class Suggestion_Generator(object):
             len_of_key_strokes = find_num_chars_in_n_gram(look_this_up, 3)
             truncated_key_strokes = look_this_up[:len_of_key_strokes - 1]
             
-            most_frequent_lines = retrieve_suggestions(truncated_key_strokes, self.key_stroke_lookup_table, top_x_lines)
+            most_frequent_lines = self.retrieve_suggestions(truncated_key_strokes, top_x_lines)
 
         return format_suggestions_properly(most_frequent_lines)
-        # return most_frequent_lines
+        
+    def retrieve_suggestions(self, key_strokes, top_x_lines):
+        '''
+        This adds an O(nlogn) time complexity to our prediction method. 
+        we could avoid this by just pickling the sorted dict before hand.
+        '''
+        try:
+            autocompleted_suggestions = self.key_stroke_lookup_table.keys(key_strokes)
+            freq_suggestions = [(suggestion, self.line_frequency_table[suggestion]) for suggestion in autocompleted_suggestions]
+            suggestions = sorted(freq_suggestions, key=lambda x:x[1], reverse=True)[:top_x_lines]
+            return [tuple_[0] for tuple_ in suggestions]
+        except TypeError:
+            try:
+                sub_dict_of_suggestions = self.key_stroke_lookup_table[key_strokes]
+
+                #grabs the top X number of lines sorted by count (most popular)
+                suggestions = sorted(sub_dict_of_suggestions.items(), key=lambda x:x[1], reverse=True)[:top_x_lines]
+
+                return [tuple_[0] for tuple_ in suggestions]
+            except KeyError:
+                return None
 
     
     def preprocess(self, corpus):
@@ -182,12 +206,9 @@ class Suggestion_Generator(object):
         corpus_formatted = [tokenized_line for line in corpus \
                             for tokenized_line in sent_detector.tokenize(line.strip().lower())]
 
-        
-        #consider re-designing to a helper function that does multiple manipulations to a string
-
         #expanding the abreviations
         corpus_formatted_expanded = [multiple_replace(line) for line in corpus_formatted]
-
+        
         #spell check *note this function takes quite a bit of time
         corpus_formatted_expanded_correct = [' '.join([spell_checker.correct(word) for word in line.strip().split()]) 
                                              for line in corpus_formatted_expanded]
@@ -204,24 +225,30 @@ class Suggestion_Generator(object):
         '''
         
         cPickle.dump(self.key_stroke_lookup_table, open('key_stroke_lookup_table.pkl','wb'))
+        cPickle.dump(self.line_frequency_table, open('line_frequency_table.pkl','wb'))
+        
         return None
     
-    def load_from_pickle(self, filename='key_stroke_lookup_table.pkl'):
+    def load_from_pickle(self, filename_prefix_lookup='key_stroke_lookup_table.pkl', filename_line='line_frequency_table.pkl'):
         '''
         loads pickled frequency table
         '''
 
-        print 'loading: ', filename, '...',
-        self.key_stroke_lookup_table = cPickle.load(open(filename,'rb'))
+        print 'loading: ', filename_prefix_lookup, '...',
+        self.key_stroke_lookup_table = cPickle.load(open(filename_prefix_lookup,'rb'))
+        print 'loading: ', filename_line, '...',
+        self.line_frequency_table = cPickle.load(open(filename_line,'rb'))
         print 'loaded.'
+        return None
 
 if __name__ == '__main__':
 
     #stub code just to test out the class
     model = Suggestion_Generator()
-    # model.train('sample_conversations.json')
-    # model.dump_to_pickle()
-    # model.print_corpus(model.preprocessed_corpus, True, True)
+    model.train('sample_conversations.json')
+    model.dump_to_pickle()
+    model.print_corpus(model.preprocessed_corpus, True, True)
     
+    #this takes a substantial amount of clocktime
     model.load_from_pickle()
-    print model.find_suggestions('what')
+    print model.find_suggestions(u'what')
