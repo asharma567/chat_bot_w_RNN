@@ -15,11 +15,8 @@ class Suggestion_Generator(object):
     --------
     train
     read_in_corpus
-    create_frequency_dict
     find_suggestions_given_input
     preprocess
-    load_from_pickle
-    dump_to_pickle
     print_corpus
     
 
@@ -42,9 +39,6 @@ class Suggestion_Generator(object):
     FIND_SUGGESTIONS_given_input
     * threshold the number suggestions by the frequency of suggested term
     * decrease the time complexity of this function
-
-    CREATE_FREQUENCY_DICT
-    * use a trie structure
     '''
     
     def __init__(self):
@@ -176,7 +170,7 @@ class Suggestion_Generator(object):
         #tokenize by sentence
         corpus_formatted = tokenize_by_sentence(corpus)
         
-        return multithread_map(token_level_process, corpus_formatted, num_workers=20)
+        return map(token_level_process, corpus_formatted)
 
         
 

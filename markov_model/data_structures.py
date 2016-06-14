@@ -4,6 +4,14 @@ import dawg
 import sys
 
 class Lookup_Data_Structures(object):
+    '''
+    other structures to tryout
+    refer to --
+        http://kmike.ru/python-data-structures/
+        there is a package named patricia-tree that doesn't provide a Patricia-Tree [sic] but has a C-based implementation of Ternary Search Tree (wiki);
+        pytst C++ library for Ternary Search Tree has Python bindings;
+    '''
+
     token_frequency_table = {}
     
     def __init__(self, corpus, create_this_struct_type='MARISA'):
