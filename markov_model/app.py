@@ -1,7 +1,7 @@
-#!flask/bin/python
 from flask import Flask, jsonify
 from suggestion_model import Suggestion_Generator
 '''
+#!flask/bin/python
 USAGE in Bash shell:
 
 1) python app.py
