@@ -1,9 +1,6 @@
 import json
 import nltk.data
 import spell_checker
-from collections import Counter
-import cPickle
-
 # do this line by line
 from helpers import *
 
@@ -91,7 +88,6 @@ class Suggestion_Generator(object):
 
 
 
-
     def read_in_corpus(self, target_corpus_filename):
         '''
         reads a json file of chats and strips on the customer service lines 
@@ -147,23 +143,14 @@ class Suggestion_Generator(object):
         '''
         This adds an O(nlogn) time complexity to our prediction method. 
         we could avoid this by just pickling the sorted dict before hand.
+
+        *should this belong in the Lookup_Sata_Structures class?
         '''
-        try:
-            autocompleted_suggestions = self.key_stroke_lookup_table.keys(key_strokes)
-            freq_suggestions = [(suggestion, self.line_frequency_table[suggestion]) for suggestion in autocompleted_suggestions]
-            suggestions = sorted(freq_suggestions, key=lambda x:x[1], reverse=True)[:top_x_lines]
-            return [tuple_[0] for tuple_ in suggestions]
         
-        except TypeError:
-            try:
-                sub_dict_of_suggestions = self.key_stroke_lookup_table[key_strokes]
-
-                #grabs the top X number of lines sorted by count (most popular)
-                suggestions = sorted(sub_dict_of_suggestions.items(), key=lambda x:x[1], reverse=True)[:top_x_lines]
-
-                return [tuple_[0] for tuple_ in suggestions]
-            except KeyError:
-                return None
+        zipfian_distributed_suggestions = data_store.lookup(key_strokes)
+        suggestions = sorted(zipfian_distributed_suggestions, key=lambda x:x[1], reverse=True)[:top_x_lines]
+        return [tuple_[0] for tuple_ in suggestions]
+        
 
     
     def preprocess(self, corpus):
@@ -198,27 +185,6 @@ class Suggestion_Generator(object):
         return [custome_refine(line) for line in corpus_formatted_expanded_correct]
 
         
-    def dump_to_pickle(self):
-        '''
-        pythonically serializes lookup table
-        '''
-        
-        cPickle.dump(self.key_stroke_lookup_table, open('key_stroke_lookup_table.pkl','wb'))
-        cPickle.dump(self.line_frequency_table, open('line_frequency_table.pkl','wb'))
-        
-        return None
-    
-    def load_from_pickle(self, filename_prefix_lookup='key_stroke_lookup_table.pkl', filename_line='line_frequency_table.pkl'):
-        '''
-        loads pickled frequency table
-        '''
-
-        print 'loading: ', filename_prefix_lookup, '...',
-        self.key_stroke_lookup_table = cPickle.load(open(filename_prefix_lookup,'rb'))
-        print 'loading: ', filename_line, '...',
-        self.line_frequency_table = cPickle.load(open(filename_line,'rb'))
-        print 'loaded.'
-        return None
 
 if __name__ == '__main__':
 
