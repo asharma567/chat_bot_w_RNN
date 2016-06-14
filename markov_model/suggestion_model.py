@@ -80,7 +80,7 @@ class Suggestion_Generator(object):
         '''
         
         if counter_table:
-            sorted_line_counts = sorted(Counter(corpus).items(), key=lambda x:x[1], reverse=True)
+            sorted_line_counts = sort_by_most_frequent(data_store.token_frequency_table.items())
             output = '\n'.join(str(tuple_[1]) + ' | ' + tuple_[0] for tuple_ in sorted_line_counts)
         else:
             output = '\n'.join(corpus)
@@ -144,18 +144,18 @@ class Suggestion_Generator(object):
             most_frequent_lines = self.retrieve_suggestions(truncated_key_strokes, top_x_lines)
 
         return format_suggestions_properly(most_frequent_lines)
-        
+    
+
     def retrieve_suggestions(self, key_strokes, top_x_lines):
         '''
         This adds an O(nlogn) time complexity to our prediction method. 
         we could avoid this by just pickling the sorted dict before hand.
-
-        *should this belong in the Lookup_Sata_Structures class?
         '''
         
-        zipfian_distributed_suggestions = self.data_store.lookup(key_strokes)
-        suggestions = sorted(zipfian_distributed_suggestions, key=lambda x:x[1], reverse=True)[:top_x_lines]
-        return [tuple_[0] for tuple_ in suggestions]
+        zipfian_distributed_suggestions = sort_by_most_frequent(self.data_store.lookup(key_strokes))
+        
+        #peeling off the counts
+        return [tuple_[0] for tuple_ in  zipfian_distributed_suggestions[:top_x_lines]]
         
 
     

@@ -41,6 +41,10 @@ def create_key_stroke_to_cust_line_table(customer_service_line_key,
     return lookup_table
 
 
+def sort_by_most_frequent(ctr_dict):
+    return sorted(ctr_dict.items(), key=lambda x:x[1], reverse=True)
+
+
 def find_num_chars_in_n_gram(target_str, number_of_grams):
     '''
     calculates the number of characters of a 
