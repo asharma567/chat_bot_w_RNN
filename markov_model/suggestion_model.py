@@ -26,6 +26,7 @@ class Suggestion_Generator(object):
         - enumerate possible inputs that will break find_suggestions_given_input
         - try to break the rest of the functions
     * dedupe corpus of customer service rep lines
+        * use LSH
 
     PREPROCESS
     * fix grammar
