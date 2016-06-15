@@ -74,13 +74,14 @@ class Suggestion_Generator(object):
         '''
         
         if counter_table:
-            sorted_line_counts = sort_by_most_frequent(data_store.token_frequency_table.items())
+            sorted_line_counts = sort_by_most_frequent(self.data_store.token_frequency_table)
             output = '\n'.join(str(tuple_[1]) + ' | ' + tuple_[0] for tuple_ in sorted_line_counts)
         else:
             output = '\n'.join(corpus)
         if dump_to_txt:
             
             with open('corpus.txt','wb') as f:
+                # need to remove null bytes
                 f.write(output)
         else:
             print '\n'.join(output)
@@ -146,10 +147,10 @@ class Suggestion_Generator(object):
         we could avoid this by just pickling the sorted dict before hand.
         '''
         
-        zipfian_distributed_suggestions = sort_by_most_frequent(self.data_store.lookup(key_strokes))
+        zipfian_distributed_suggestions = sort_by_most_frequent(dict(self.data_store.lookup(key_strokes)))
         
         #peeling off the counts
-        return [tuple_[0] for tuple_ in  zipfian_distributed_suggestions[:top_x_lines]]
+        return dict(zipfian_distributed_suggestions[:top_x_lines]).keys()
         
 
     
@@ -180,9 +181,9 @@ if __name__ == '__main__':
     #stub code just to test out the class
     model = Suggestion_Generator()
     model.train('sample_conversations.json')
-    model.dump_to_pickle()
-    model.print_corpus(model.preprocessed_corpus, True, True)
+    # model.dump_to_pickle()
+    # model.print_corpus(model.preprocessed_corpus, True, True)
     
     #this takes a substantial amount of clocktime
-    model.load_from_pickle()
+    # model.load_from_pickle()
     print model.find_suggestions_given_input(u'what')

@@ -21,11 +21,11 @@ class Lookup_Data_Structures(object):
         
         #try to think of a better structure than this
         if create_this_struct_type == 'MARISA': 
-            self.lookup_table = create_TRIE(corpus)
+            self.lookup_table = self.create_TRIE(corpus)
         elif create_this_struct_type == 'dict': 
-            self.lookup_table = create_frequency_dict(corpus)
+            self.lookup_table = self.create_frequency_dict(corpus)
         elif create_this_struct_type == 'DAWG': 
-            self.lookup_table = create_DAWG(corpus)
+            self.lookup_table = self.create_DAWG(corpus)
         else:
             raise KeyError
         pass
