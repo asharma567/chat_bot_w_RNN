@@ -205,7 +205,7 @@ def token_level_process(line):
     line = multiple_replace(line)
     
     #spell check *note this function takes quite a bit of time
-    # line = correct_spelling(line)
+    line = correct_spelling(line)
     
     #further refinement 
     line = add_question_mark_or_period_to_sentence(line)
