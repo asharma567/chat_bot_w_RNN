@@ -1,6 +1,6 @@
-### How would you evaluate your autosuggest server? If you made another version, how would you compare the two to decide which is better?
+### How would you evaluate to evaluate this model considering there it isn't supervised learning? 
 
-The short answer is an A/B test where the control group are users of model A and the test group users of model B. Alternatively, we could also explore the application of a Multi-Arm Bandit algorithm but lets just stick with A/B testing for simplicity's sake .
+A/B test where the control group are users of model A and the test group users of model B. Alternatively, we could also explore the application of a Multi-Arm Bandit algorithm but lets just stick with A/B testing for simplicity's sake .
 
 First I'd attempt to figure out the desireable performance metric we're trying to optimize from a business perspective.
 
@@ -28,10 +28,10 @@ _Note: duration of test, sample size, CI will all have to be determined before h
 ---
 
 
-### One way to improve the autosuggest server is to give topic-specific suggestions. How would you design an auto-categorization server? It should take a list of messages and return a TopicId. (Assume that every conversation in the training set has a TopicId).
+### How would you design an auto-categorization model to give topic level suggestions? takes a list of messages and returns a TopicId. 
 
 
-Assumming the list of messages represents a dialogue, there are a few approaches we can take but lets focus on these two:
+Assumming the list of messages represents a dialogue and we have labels, there are a few approaches we can take but lets focus on these two:
 
 1. similarity query using TFIDF -> LSI -> Similarity Matrix
 1. training a classifier on the vectorized corpus.
@@ -60,7 +60,7 @@ _Special note, in the event that we don't have the TopicIds we could use topic m
 ---
 
 
-### How would you evaluate if your auto-categorization server is good?
+### How would you evaluate if your topic model was good?
 
 You could evaluate the classifier(s) through traditional ML/statistical methods: K-fold crossvalidation, Leave One Out K-Fold validation, test/validation/train split. 
 
@@ -70,7 +70,7 @@ Assuming this is already properly addressed then we could inspect the usage of s
 ---
 
 
-### Processing hundreds of millions of conversations for your autosuggest and auto-categorize models could take a very long time. How could you distribute the processing across multiple machines?
+### Training and prediction could take some time and considering how fast we need this, how would you scale across multiple machines?
 
 **Prediction**
 
