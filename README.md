@@ -1,4 +1,4 @@
-### How would you evaluate to evaluate this model considering there it isn't supervised learning? 
+### How would you evaluate this model considering there it isn't supervised learning? 
 
 A/B test where the control group are users of model A and the test group users of model B. Alternatively, we could also explore the application of a Multi-Arm Bandit algorithm but lets just stick with A/B testing for simplicity's sake .
 
