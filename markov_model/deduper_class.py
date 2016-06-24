@@ -230,6 +230,8 @@ class Deduper_NN(object):
                             self.build_vectorizer(self.orig_file, **vectorizer_params)
                             self.fit_model(nn_algo, nn_model_params)
                             hist_arr = self.make_hist()
+                            print_prof_data()
+                            clear_prof_data()
                             self.plot_histogram(hist_arr)
 
                             
