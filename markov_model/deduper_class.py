@@ -1,6 +1,14 @@
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.neighbors import NearestNeighbors
+
 from fuzzywuzzy import fuzz
+
+import pandas as pd
+from scipy.stats import skew
+from scipy.stats import boxcox
+from sklearn import preprocessing
+import matplotlib.pyplot as plt
+
 
 
 # need to add a class for graph theory
@@ -180,6 +188,12 @@ class Deduper_NN(object):
         return big_bag
     
     def make_hist(self):
+        '''
+        these queries take while
+
+        *add timer bit
+        '''
+
         #use a numpy array since the size is already pre-defined
         hist_bag = []
         
@@ -187,6 +201,7 @@ class Deduper_NN(object):
 
         for l, observation in enumerate(self.vector_space):
 
+            #just a way to keep track of where it's at
             if l % 30 == 0: 
                 print l
             
@@ -205,8 +220,25 @@ class Deduper_NN(object):
 
             hist_bag.append(dist[1])
 
-                
+
         return pd.Series(hist_bag)
+
+    def plot_histogram(self, histogram_arr, text_pos=None):
+        
+        figure = plt.figure(figsize=(10,5))
+        plt.hist(histogram_arr, bins=50, alpha=0.75) 
+        plt.title("not scaled") 
+        if text_pos:
+            self.distribution_stats_text_label(text_pos[0], text_pos[1], histogram_arr)
+        plt.show()
+
+
+    def distribution_stats_text_label(self, position_x, position_y, data):
+        label_position_decrement = 0.08 * position_y
+        plt.text(position_x, position_y, "Skewness: {0:.2f}".format(skew(data))) 
+        plt.text(position_x, position_y - label_position_decrement, "Mean: {0:.2f}".format(data.mean())) 
+        plt.text(position_x, position_y - 2 * label_position_decrement, "Std: {0:.2f}".format(data.std())) 
+        return None
 
     def get_all_comparisons(self, main_str, strings, comparison_algo, threshold=None):
         '''
