@@ -1,5 +1,7 @@
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.neighbors import NearestNeighbors
+from sklearn.neighbors import LSHForest
+from annoy import Annoy
 
 from fuzzywuzzy import fuzz
 
@@ -11,13 +13,52 @@ import matplotlib.pyplot as plt
 
 
 
+
+import time
+from functools import wraps
+
+PROF_DATA = {}
+
+def profile(fn):
+    @wraps(fn)
+    def with_profiling(*args, **kwargs):
+        start_time = time.time()
+
+        ret = fn(*args, **kwargs)
+
+        elapsed_time = time.time() - start_time
+
+        if fn.__name__ not in PROF_DATA:
+            PROF_DATA[fn.__name__] = [0, []]
+        PROF_DATA[fn.__name__][0] += 1
+        PROF_DATA[fn.__name__][1].append(elapsed_time)
+
+        return ret
+
+    return with_profiling
+
+def print_prof_data():
+    for fname, data in PROF_DATA.items():
+        max_time = max(data[1])
+        avg_time = sum(data[1]) / len(data[1])
+        print "Function %s called %d times. " % (fname, data[0]),
+        print 'Execution time max: %.3f, average: %.3f' % (max_time, avg_time)
+
+def clear_prof_data():
+    global PROF_DATA
+    PROF_DATA = {}
+
 # need to add a class for graph theory
 # nn class
 class Deduper_NN(object):
     '''
+    DESIGN of this class
     I need to re-evaluate whether or not I want the state of the model/vector space 
     being saved in the event that I dont' I should just kill the self.model = model.fit() stuff
     and pass parameters from one function to another.
+
+    *Figure out a rigorous statistical way to measure quality of NN tree. 
+    Would it be whatever's skewed to the left?... how can you gaurantee that it's clustered well?
     
     methods
     ------
@@ -70,17 +111,17 @@ class Deduper_NN(object):
         all_dups_dict = {idx : self.predict(line) for idx, line in enumerate(self.orig_file)}
         return all_dups_dict
     
-    def fit_model(self, model_type='brute', vector_space_params={}):
+    def fit_model(self, model_type='brute', params=None):
         '''
         fits model operating under the assumption that there's a model already built
         '''
 
         if model_type == 'brute':
-            self.model = NearestNeighbors(algorithm='brute')
+            self.model = NearestNeighbors(algorithm='brute', **params)
         elif model_type == 'lsh':
-            self.model = LSHForest()
-        elif model_type == 'annoy':
-            self.model = Annoy()
+            self.model = LSHForest( **params)
+        # elif model_type == 'annoy':
+        #     self.model = Annoy(**params)
 
         self.model.fit(self.vector_space)
         print self.model        
@@ -116,36 +157,50 @@ class Deduper_NN(object):
             #combinations there of.
         
         vector_space_params = {
-            'model_types' : ['bag of words', 'tfidf'], #add lsi and word2vec
+            #fit the vector-space
+            #char-grams, words
+                #unagrams, bigrams, tri-grams
+
+            #or some combination there of, to do this we need to output and concat
+            
+            'model_type' : ['bag of words', 'tfidf'], #add lsi and word2vec
             'ngrams' : [1,2,3,4],
             'tokenizer' : ['char', 'word'],
-            #or some combination there of, to do this we need to output and concat
         }
         
         
-        
-        #fit the vector-space
-        #char-grams, words
-            #unagrams, bigrams, tri-grams
-            
         
         #model selection
         model_params = {
-            'model_type' : ['brute', 'annoy', 'lsh']
+            #add annoy later
+            #build out a wrapper for the class to make it more like sciki
+
+            #add lsh later
+            #need to build a seperate parameters dict for it.
+
+        
+            'model_type' : [ 'brute']
             #fill the rest in later
         }
         
+         
         #distances
         metrics = [
+            # work for sparse input
             'cosine', 
             'euclidean',
-            'dice', 
-            'jaccard', 
-            'braycurtis',
-            'canberra', 
+            'l1',
+            'l2',
+            'manhattan',
+
+            # do not work for sparese input
+            # 'dice', 
+            # 'jaccard', 
+            # 'braycurtis',
+            # 'canberra', 
+            # 'mahalanobis', # this is supposed to be the shit for outlier detection
         ]
         
-        model_params['metrics'] = metric
         
         all_params = {
             'preprocessing': None,
@@ -153,19 +208,31 @@ class Deduper_NN(object):
             'nn_algo': model_params,
         }
         
+        
+
         for nn_algo in all_params['nn_algo']['model_type']:
-            for vector_space_model in all_params['vector_space']['model_types']:
+            for vector_space_model in all_params['vector_space']['model_type']:
                 for gram in  all_params['vector_space']['ngrams']:
                     for type_of_tokenizer in  all_params['vector_space']['tokenizer']:
-                        for metric in metrics:
-                            params = {
-                                nn_algo,
-                                vector_space_model,
-                                type_of_tokenizer,
-                                metric
+                        for dist_metric in metrics:
+                            
+                            nn_model_params = {
+                                # 'model_type' : nn_algo,
+                                'metric' : dist_metric,
                             }
-                            deduper.train()
-                            #print to out 
+
+                            vectorizer_params = {
+                                'model_type' : vector_space_model,
+                                'tokenizer' : type_of_tokenizer,
+                                'ngrams' : gram
+                            }
+
+                            self.build_vectorizer(self.orig_file, **vectorizer_params)
+                            self.fit_model(nn_algo, nn_model_params)
+                            hist_arr = self.make_hist()
+                            self.plot_histogram(hist_arr)
+
+                            
                 
         
         #how do you gauge the quality of matches?
@@ -187,12 +254,14 @@ class Deduper_NN(object):
 
         return big_bag
     
+    @profile
     def make_hist(self):
         '''
         these queries take while
 
         *add timer bit
         '''
+        import sys
 
         #use a numpy array since the size is already pre-defined
         hist_bag = []
@@ -203,7 +272,7 @@ class Deduper_NN(object):
 
             #just a way to keep track of where it's at
             if l % 30 == 0: 
-                print l
+                sys.stdout.write(str(l))
             
 
             dist, idx = self.model.kneighbors(observation, n_neighbors=2)
