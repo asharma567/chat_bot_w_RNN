@@ -1,4 +1,4 @@
-### How would you evaluate this model considering there it isn't supervised learning? 
+### How to evaluate this model? 
 
 A/B test where the control group are users of model A and the test group users of model B. Alternatively, we could also explore the application of a Multi-Arm Bandit algorithm but lets just stick with A/B testing for simplicity's sake .
 
@@ -28,15 +28,15 @@ _Note: duration of test, sample size, CI will all have to be determined before h
 ---
 
 
-### How would you design an auto-categorization model to give topic level suggestions? takes a list of messages and returns a TopicId. 
+### How to design an auto-categorization model to give topic level suggestions? Input--takes a list of messages, Output--returns a TopicId. 
 
 
 Assumming the list of messages represents a dialogue and we have labels, there are a few approaches we can take but lets focus on these two:
 
-1. similarity query using TFIDF -> LSI -> Similarity Matrix
+1. similarity query using TF-IDF -> LSI -> Similarity Matrix
 1. training a classifier on the vectorized corpus.
 
-Buildout approach (2) if (1) doesn't work well. Why? Because the classifier can use the TFIDF feature matrix built in (1).
+Buildout approach (2) if (1) doesn't work well. Why? Because the classifier can use the TF-IDF feature matrix built in (1).
 
 **1)**
 
@@ -44,13 +44,13 @@ Buildout approach (2) if (1) doesn't work well. Why? Because the classifier can 
 
     Another important factor is the way in which we tokenize of each document. We have a number of options ranging from character-grams, uni-grams, bi-grams,..., skip-grams, etc. Often times I use some combination of uni-grams, bi-grams, character-grams (if there are typos).
 
-    Once we have parameters configured we can transform/vectorize our entire corpus into a TFIDF vector space then transform that into LSI vector space. We vectorize each new and unseen document with the same parameters and transformations as we did the corpus and compute the similarity of the resulting vector versus each document in our corpus for a prediction. Using a threshold for the similarity index we could retrieve the TopicId of the most similar document. Here's another area where various similarity metrics can be used but a good starting point is cosine similarity.
+    Once we have parameters configured we can transform/vectorize our entire corpus into a TF-IDF vector space then transform that into LSI vector space. We vectorize each new and unseen document with the same parameters and transformations as we did the corpus and compute the similarity of the resulting vector versus each document in our corpus for a prediction. Using a threshold for the similarity index we could retrieve the TopicId of the most similar document. Here's another area where various similarity metrics can be used but a good starting point is cosine similarity.
 
 #### _If the results of this don't work well. No problem! All is not lost..._
 
 **2)**
 
-    We can train a classifier on the aforementioned TFIDF matrix and use the TopicId as labels. There will be a model selection process where we test classifiers ranging from Logistic Regression, SVM, naive bayes, and ensemble Gradient Boosted Trees & Random Forest. These models should be grid searched for their optimal hyper-parameters and evaluated on performance. Once we figure out which model we're happy with we can serialize the classifier & TFIDF vectorizer and wrap it into a restful api and ping it with list of chat messages as input and it would output the TopicId. 
+    We can train a classifier on the aforementioned TF-IDF matrix and use the TopicId as labels. There will be a model selection process where we test classifiers ranging from Logistic Regression, SVM, naive bayes, and ensemble Gradient Boosted Trees & Random Forest. These models should be grid searched for their optimal hyper-parameters and evaluated on performance. Once we figure out which model we're happy with we can serialize the classifier & TF-IDF vectorizer and wrap it into a restful api and ping it with list of chat messages as input and it would output the TopicId. 
 
     An obstacle we'll likely come across for this method will be on how to handle class imbalance. Some examples are as follows - under/oversampling, sample weighting, combining the minor classes, layering multiple models, etc.
 
@@ -60,7 +60,7 @@ _Special note, in the event that we don't have the TopicIds we could use topic m
 ---
 
 
-### How would you evaluate if your topic model was good?
+### How to evaluate the topic model?
 
 You could evaluate the classifier(s) through traditional ML/statistical methods: K-fold crossvalidation, Leave One Out K-Fold validation, test/validation/train split. 
 
