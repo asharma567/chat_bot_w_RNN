@@ -40,8 +40,8 @@ Assumming the list of messages represents a dialogue and we have labels, there a
 Buildout approach (2) if (1) doesn't work well. Why? Because the classifier can use the TF-IDF feature matrix built in (1).
 
 **1)**
-``
-First, you'll have to pre-process the text in the corpus. For a case of topic modeling, I would treat each dialogue as a document. Now that we have our documents identified in the corpus we need to normalize the text within each document i.e. removing stop words, stemming/lemmatization, dealing with typos, etc. 
+
+``First, you'll have to pre-process the text in the corpus. For a case of topic modeling, I would treat each dialogue as a document. Now that we have our documents identified in the corpus we need to normalize the text within each document i.e. removing stop words, stemming/lemmatization, dealing with typos, etc. 
 
 Another important factor is the way in which we tokenize of each document. We have a number of options ranging from character-grams, uni-grams, bi-grams,..., skip-grams, etc. Often times I use some combination of uni-grams, bi-grams, character-grams (if there are typos).
 
@@ -50,8 +50,8 @@ Once we have parameters configured we can transform/vectorize our entire corpus 
 #### _If the results of this don't work well. No problem! All is not lost..._
 
 **2)**
-``
-We can train a classifier on the aforementioned TF-IDF matrix and use the TopicId as labels. There will be a model selection process where we test classifiers ranging from Logistic Regression, SVM, naive bayes, and ensemble Gradient Boosted Trees & Random Forest. These models should be grid searched for their optimal hyper-parameters and evaluated on performance. Once we figure out which model we're happy with we can serialize the classifier & TF-IDF vectorizer and wrap it into a restful api and ping it with list of chat messages as input and it would output the TopicId. 
+
+``We can train a classifier on the aforementioned TF-IDF matrix and use the TopicId as labels. There will be a model selection process where we test classifiers ranging from Logistic Regression, SVM, naive bayes, and ensemble Gradient Boosted Trees & Random Forest. These models should be grid searched for their optimal hyper-parameters and evaluated on performance. Once we figure out which model we're happy with we can serialize the classifier & TF-IDF vectorizer and wrap it into a restful api and ping it with list of chat messages as input and it would output the TopicId. 
 
 An obstacle we'll likely come across for this method will be on how to handle class imbalance. Some examples are as follows - under/oversampling, sample weighting, combining the minor classes, layering multiple models, etc.
 ``
@@ -75,10 +75,9 @@ Assuming this is already properly addressed then we could inspect the usage of s
 ### Training and prediction could take some time and considering how fast we need this, how would you scale across multiple machines?
 
 **Prediction**
-``
-Distributing the model to different end points for load balancing. Using Apache Storm for streaming computation close to realtime speeds. ``
+
+``Distributing the model to different end points for load balancing. Using Apache Storm for streaming computation close to realtime speeds. ``
 
 **Training and Preprocessing**
-``
-Hadoop and Spark should do the trick here. Most preprocessing could even be done using MapReduce. As for scalable modeling algorithms, MLlib and Mahout should have what we need.
-``
+
+``Hadoop and Spark should do the trick here. Most preprocessing could even be done using MapReduce. As for scalable modeling algorithms, MLlib and Mahout should have what we need.``
