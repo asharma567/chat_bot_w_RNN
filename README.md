@@ -5,6 +5,7 @@ A/B test where the control group are users of model A and the test group users o
 First I'd attempt to figure out the desireable performance metric we're trying to optimize from a business perspective.
 
 **Metrics**
+
 1. Average number of key-strokes/suggestion clicks by a customer service rep per customer.
 1. Average time spent per customer.
 1. Average number suggestions used.
