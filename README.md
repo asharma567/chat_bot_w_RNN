@@ -17,8 +17,9 @@ It's easy to assume that (2) might be the ultimate goal. This tool could potenti
 As for (3), it doesn't account for the additional key-strokes the user has to type in. I believe (1) is the best option in this case since it really narrows down on the business objective of the model ###to minimize keystrokes.
 
 **Hypothesis test**
-    
-    Leveraging principles of CLT we could use the Difference of Means test. After randomly sampling users from each of the cohorts and taking the average number of key-strokes/suggestion clicks from the users, we arrive to a statistically significant conclusion about which model's better.
+
+``Leveraging principles of CLT we could use the Difference of Means test. After randomly sampling users from each of the cohorts and taking the average number of key-strokes/suggestion clicks from the users, we arrive to a statistically significant conclusion about which model's better.
+``
 
 At the end of this evaluation we should be able to say on average users of model A used less keystrokes than model B. This way we can confidently reject the notion that this result occurred by random chance.
 
